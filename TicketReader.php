@@ -25,7 +25,26 @@ class TicketReader{
             }
         }
     }
+
+    function getSentiment($interactionMessage){
+        $data = '{
+            "encodingType": "UTF8",
+            "document": {
+              "type": "PLAIN_TEXT",
+              "content": "Amei a loja, extremamente bom, o serviço de ótima qualidade e todos foram muito gentis."
+            }
+          }';
+        $curl = curl_init("https://language.googleapis.com/v1/documents:analyzeSentiment?key=");
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($curl);
+        curl_close($curl);
+        return $response;
+    }
+
 }
+
 
 
 class TicketDAO {
@@ -101,7 +120,7 @@ class TicketDAO {
 
 $ticketReader = new ticketReader;
 $ticketReader->readTickets();
-$ticketReader->loadDataBase();
-
+//$ticketReader->loadDataBase();
+var_dump($ticketReader->getSentiment());
 
 

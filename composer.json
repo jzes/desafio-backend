@@ -1,0 +1,10 @@
+{
+    "name": "jzes/desafio-backend",
+    "description": "\"desafio backend\"",
+    "require": {
+        "google/cloud-language": "^0.12.2"
+    },
+    "autoload": {
+        "psr-4": {"App\\": "app/"}
+    }
+}

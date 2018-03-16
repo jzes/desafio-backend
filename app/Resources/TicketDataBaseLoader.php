@@ -1,10 +1,10 @@
 <?php 
-namespace App\Controllers;
+namespace App\Resources;
 
 use App\Dao\TicketDAO;
 use Google\Cloud\Language\LanguageClient;
 
-class TicketController{
+class TicketDataBaseLoader{
     public $ticketsFilePath = "tickets.json";
     public $tickets;
 
@@ -29,9 +29,12 @@ class TicketController{
                     $sentiment = $this->getSentiment($interaction->Message);
                     $scores[] = $sentiment["score"];
                     $interaction->Sentiment = strval($sentiment["score"]);
+                    $interaction->Magnitude = strval($sentiment["magnitude"]);
                     $ticket->Complaint = $this->checkComplaint($interaction->Message);
                 } else {
                     $interaction->Sentiment = "0";
+                    $interaction->Magnitude = "0";
+                    
                 }
                 $dataBase->insertInteraction($interaction, $ticket->TicketID);
                 //var_dump($interaction);

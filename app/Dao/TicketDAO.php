@@ -10,13 +10,102 @@ class TicketDAO {
     public $password;
 
     function __construct(){
-        $this->dataBase = "ticketBase";
+        $this->dataBase = "desafio";
         $this->server = "localhost";
-        $this->user = "applications";
-        $this->password = "app@123";
+        $this->user = "application";
+        $this->password = "123@app";
         $this->connection = mysqli_connect($this->server, $this->user, $this->password);
     }
-    
+
+    function getTicketByPriority($value){
+        $sqlQuery = "SELECT ticket.TicketID,
+        ticket.CategoryID,
+        ticket.CustomerID,
+        ticket.CustomerName,
+        ticket.CustomerEmail,
+        ticket.DateCreate,
+        ticket.DateUpdate,
+        ticket.Complaint,
+        ticket.SentimentAverage,
+        ticket.Priority,
+        ticket.SLATimeHours
+        FROM desafio.ticket 
+        where Priority = '{$value}';";
+        return $this->fetchAndBuildTicketArray(mysqli_query($this->connection, $sqlQuery));        
+    }
+
+    function fetchAndBuildTicketArray($result){
+        $resultRows = [];                    
+        if ($result->num_rows > 0) {
+            while($row = $result->fetch_assoc()) {
+                $ticketInteractions = $this->getInteractionsByTicketID($row["TicketID"]);
+                $row["Interactions"] = $ticketInteractions;
+                $resultRows[] = $row;
+            }
+            return $resultRows;
+        }
+        return;
+    }
+
+    function getTicketsBetweenDateCreate($dateCreateStart, $dateCreateEnd){
+        $sqlQuery = "SELECT ticket.TicketID,
+        ticket.CategoryID,
+        ticket.CustomerID,
+        ticket.CustomerName,
+        ticket.CustomerEmail,
+        ticket.DateCreate,
+        ticket.DateUpdate,
+        ticket.Complaint,
+        ticket.SentimentAverage,
+        ticket.Priority,
+        ticket.SLATimeHours
+        FROM desafio.ticket 
+        where DateCreate between '{$dateCreateStart}' and '{$dateCreateEnd}';";
+        return $this->fetchAndBuildTicketArray(mysqli_query($this->connection, $sqlQuery));
+    }
+
+    function getInteractionsByTicketID($ticketID){
+        $sqlQuery = "SELECT interaction.IdInteraction,
+                interaction.TicketID,
+                interaction.Subject,
+                interaction.Message,
+                interaction.DateCreate,
+                interaction.Sender,
+                interaction.Sentiment,
+                interaction.Magnitude
+            FROM desafio.interaction
+            WHERE interaction.TicketID = {$ticketID};";
+
+        $result = mysqli_query($this->connection, $sqlQuery);
+        $resultRows = [];                    
+        if ($result->num_rows > 0) {
+            while($row = $result->fetch_assoc()) {
+                $resultRows[] = $row;
+            }
+            return $resultRows;
+        }
+        echo "\nErro\n";
+        var_dump($sqlQuery);
+    }
+
+    function getTicketsWithOrder($orderField){
+        $sqlQuery = "SELECT ticket.TicketID,
+            ticket.CategoryID,
+            ticket.CustomerID,
+            ticket.CustomerName,
+            ticket.CustomerEmail,
+            ticket.DateCreate,
+            ticket.DateUpdate,
+            ticket.Complaint,
+            ticket.SentimentAverage,
+            ticket.Priority,
+            ticket.SLATimeHours
+        FROM desafio.ticket
+        ORDER BY ticket.{$orderField};";
+
+        return $this->fetchAndBuildTicketArray(mysqli_query($this->connection, $sqlQuery));
+    }
+
     function insertInteraction($interaction, $ticketID){
         $sqlQuery = "INSERT INTO desafio.interaction
         (TicketID,
@@ -24,14 +113,16 @@ class TicketDAO {
         Message,
         DateCreate,
         Sender,
-        Sentiment)
+        Sentiment, 
+        Magnitude)
         VALUES
         ({$ticketID},
         '{$interaction->Subject}',
         '{$interaction->Message}',
         '{$interaction->DateCreate}',
         '{$interaction->Sender}',
-        {$interaction->Sentiment});";
+        {$interaction->Sentiment},
+        {$interaction->Magnitude});";
         
         $res = mysqli_query($this->connection, $sqlQuery);
         
